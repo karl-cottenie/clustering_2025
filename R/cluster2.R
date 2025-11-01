@@ -31,9 +31,9 @@ library(Biostrings)
 ####PART 1 - DATA DESCRIPTION ----
 
 #Info about this specific dataset. Mysis is a genus of freshwater crustaceans. Code I used to download the data, on October 20, 2021
-#Mysis <- read_tsv("http://www.boldsystems.org/index.php/API_Public/combined?taxon=Mysis&format=tsv")
+Mysis <- read_tsv("http://www.boldsystems.org/index.php/API_Public/combined?taxon=Mysis&format=tsv")
 #code used to write data to a file
-#write_tsv(Mysis, "Mysis_BOLD.tsv")
+write_tsv(Mysis, "Mysis_BOLD.tsv")
 
 #Next, we are defining the amount of missing data we will accept for this analysis. This parameter is defined as the proportion of a sequence comprised of Ns, after trimming off terminal Ns and removing all gaps (-). Here, we are using 0.01 as our starting value, which means we will accept up to 1% internal Ns in our DNA sequences.
 missing.data <- 0.01
@@ -88,36 +88,30 @@ names(df_mysis)
 # there are literally 100's of distance measures
 # see for instance the p-distance in the k-mer activity sheet
 # here I picked the euclidean distances based on the different k-mer frequencies
+---
+  ####PART 4 - HIERARCHICAL CLUSTERING AND VISUALIZATION (MODIFIED)----
 
+####PART 4 - HIERARCHICAL CLUSTERING AND VISUALIZATION (MODIFIED)----
+
+# Recalculate the distance matrix based on k-mer frequencies
+# Exclude the first 7 columns, which are metadata
 dist_mysis = dist(df_mysis[,-(1:7)], method = "euclidean")
 
-# there are also 100s of different methods and packages for clustering
-# here I have used hclust, which is included with base R
-# but we will later see different methods
+# Perform hierarchical clustering using complete linkage
+hier_mysis = hclust(dist_mysis, method = "complete")
 
-hier_mysis = hclust(dist_mysis, method = "single")
+# Plot the dendrogram labeled by species
+plot(hier_mysis, labels = df_mysis$species_name, cex = 0.5)
 
-hier_mysis
-
-plot(hier_mysis)
-# this is not very useful, since the tips are labelled by their row number
-# let's see what the figure looks like if we for instance label the tips by the species names
-
-plot(hier_mysis, 
-     labels = df_mysis$species_name, cex = 0.5)
-# this clustering based on k-mer frequencies recovered the species identities really well!!!!
-
-plot(hier_mysis, 
-     labels = df_mysis$country, cex = 0.5)
-# clustering also related to country of origin of each specimen
-
-# now you can look for groups
-plot(hier_mysis, 
-     labels = df_mysis$species_name, cex = 0.5)
+# Highlight 5 clusters with a red border
 rect.hclust(hier_mysis, k = 5, border = "red")
-# specify a number of groups, i.e., 5
+
+# Optional: highlight clusters using a height cutoff of 0.02 with blue border
 rect.hclust(hier_mysis, h = 0.02, border = "blue")
-# or specify a cut-off dissimilarity value, i.e., 0.02
+
+# Save the figure to the figures folder with your UoG username
+if(!dir.exists("figures")) dir.create("figures")
+ggsave("figures/vlelo_cluster.png", plot = last_plot(), width = 6, height = 4)
 
 ####PART 5 - NEXT STEPS----
 # code challenges
